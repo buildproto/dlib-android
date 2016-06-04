@@ -31,8 +31,8 @@ LOCAL_SRC_FILES := \
 	../dlib/dlib/threads/threads_kernel_2.cpp
 
 LOCAL_SRC_FILES += \
-	       jni_people_det.cpp \
-           imageutils_jni.cpp \
+	       jni_hogdetector.cpp \
+           jni_imageutils.cpp \
            common/rgb2yuv.cpp \
            common/yuv2rgb.cpp
 
@@ -43,10 +43,6 @@ LOCAL_ARM_MODE := arm
 ifeq ($(TARGET_ARCH_ABI), armeabi-v7a)
 	LOCAL_ARM_NEON := true
 endif
-
-#LOCAL_CFLAGS += -pie -fPIE
-#LOCAL_LDFLAGS += -pie -fPIE
-#include $(BUILD_EXECUTABLE)
 
 include $(BUILD_SHARED_LIBRARY)
 #-----------------------------------------------------------------------------

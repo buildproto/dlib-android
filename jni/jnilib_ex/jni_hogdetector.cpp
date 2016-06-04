@@ -1,5 +1,5 @@
 /*
- * jni_people_det.cpp using google-style
+ * jni_hogdetector.cpp using google-style
  *
  *  Created on: Oct 20, 2015
  *      Author: Tzutalin
@@ -7,7 +7,7 @@
  *  Copyright (c) 2015 Tzutalin. All rights reserved.
  */
 #include <android/bitmap.h>
-#include <detector.h>
+#include <hogdetector.h>
 #include <jni.h>
 
 using namespace cv;
@@ -54,7 +54,6 @@ static void convertBitmapToRgbaMat(JNIEnv * env, jobject& bitmap, Mat& dst, bool
   }
 }
 
-std::shared_ptr<OpencvHOGDetctor> gOpencvHOGDetectorPtr;
 std::shared_ptr<DLibHOGDetector> gDLibHOGDetectorPtr;
 std::shared_ptr<DLibHOGFaceDetector> gDLibHOGFaceDetectorPtr;
 
@@ -103,37 +102,6 @@ void JNIEXPORT DLIB_JNI_METHOD(jniNativeClassInit)(JNIEnv* _env, jclass _this) {
   LOG(INFO) << "JniNativeClassIni Success";
 }
 
-jint JNIEXPORT JNICALL DLIB_JNI_METHOD(jniOpencvHOGDetect)(JNIEnv* env,
-							   jobject thiz,
-							   jstring imgPath) {
-  LOG(INFO) << "com_tzutalin_dlib_PeopleDet jniOpencvHOGDetect";
-  const char* img_path = env->GetStringUTFChars(imgPath, 0);
-  if (!gOpencvHOGDetectorPtr)
-    gOpencvHOGDetectorPtr = std::make_shared<OpencvHOGDetctor>();
-
-  int nums = gOpencvHOGDetectorPtr->det(std::string(img_path));
-  env->ReleaseStringUTFChars(imgPath, img_path);
-  return nums;
-}
-
-jint JNIEXPORT JNICALL
-    DLIB_JNI_METHOD(jniGetOpecvHOGRet)(JNIEnv* env, jobject thiz,
-				       jobject detRet, jint index) {
-  if (gOpencvHOGDetectorPtr) {
-    cv::Rect rect = gOpencvHOGDetectorPtr->getResult()[index];
-    env->SetIntField(detRet, gVisionDetRetOffsets.left, rect.x);
-    env->SetIntField(detRet, gVisionDetRetOffsets.top, rect.y);
-    env->SetIntField(detRet, gVisionDetRetOffsets.right, rect.x + rect.width);
-    env->SetIntField(detRet, gVisionDetRetOffsets.bottom, rect.y + rect.height);
-    env->SetFloatField(detRet, gVisionDetRetOffsets.confidence, 0);
-    jstring jstr = (jstring)(env->NewStringUTF("person"));
-    env->SetObjectField(detRet, gVisionDetRetOffsets.label, (jobject)jstr);
-    return JNI_OK;
-  }
-
-  return JNI_ERR;
-}
-
 jint JNIEXPORT JNICALL
     DLIB_JNI_METHOD(jniDLibHOGDetect)(JNIEnv* env, jobject thiz,
 				      jstring imgPath, jstring modelPath) {
@@ -143,7 +111,8 @@ jint JNIEXPORT JNICALL
   if (!gDLibHOGDetectorPtr)
     gDLibHOGDetectorPtr = std::make_shared<DLibHOGDetector>(std::string(model_path));
 
-  int size = gDLibHOGDetectorPtr->det(std::string(img_path));
+  cv::Mat imageMat = cv::imread(std::string(img_path), 1);
+  int size = gDLibHOGDetectorPtr->det(imageMat);
   env->ReleaseStringUTFChars(imgPath, img_path);
   env->ReleaseStringUTFChars(modelPath, model_path);
   return size;
@@ -178,7 +147,8 @@ jint JNIEXPORT JNICALL
   if (!gDLibHOGFaceDetectorPtr)
     gDLibHOGFaceDetectorPtr = std::make_shared<DLibHOGFaceDetector>(landmarkmodel_path);
 
-  int size = gDLibHOGFaceDetectorPtr->det(std::string(img_path));
+  cv::Mat imgMat = cv::imread(std::string(img_path), 1);
+  int size = gDLibHOGFaceDetectorPtr->det(imgMat);
   env->ReleaseStringUTFChars(imgPath, img_path);
   env->ReleaseStringUTFChars(landmarkPath, landmarkmodel_path);
   return size;
@@ -249,7 +219,6 @@ jint JNIEXPORT JNICALL DLIB_JNI_METHOD(jniInit)(JNIEnv* env, jobject thiz) {
 jint JNIEXPORT JNICALL DLIB_JNI_METHOD(jniDeInit)(JNIEnv* env, jobject thiz) {
   LOG(INFO) << "jniDeInit";
   gDLibHOGDetectorPtr.reset();
-  gOpencvHOGDetectorPtr.reset();
   gDLibHOGFaceDetectorPtr.reset();
   return JNI_OK;
 }
@@ -257,53 +226,3 @@ jint JNIEXPORT JNICALL DLIB_JNI_METHOD(jniDeInit)(JNIEnv* env, jobject thiz) {
 #ifdef __cplusplus
 }
 #endif
-
-int main() {
-  const int INPUT_IMG_MAX_SIZE = 800;
-  const int INPUT_IMG_MIN_SIZE = 600;
-  std::string path = "/sdcard/test.jpg";
-
-  cv::Mat src_img = cv::imread(path, 1);
-
-  typedef dlib::scan_fhog_pyramid<dlib::pyramid_down<6> > image_scanner_type;
-  dlib::object_detector<image_scanner_type> detector;
-  dlib::deserialize("/sdcard/person.svm") >> detector;
-
-  int img_width = src_img.cols;
-  int img_height = src_img.rows;
-  int im_size_min = MIN(img_width, img_height);
-  int im_size_max = MAX(img_width, img_height);
-
-  float scale = float(INPUT_IMG_MIN_SIZE) / float(im_size_min);
-
-  if (scale * im_size_max > INPUT_IMG_MAX_SIZE) {
-    scale = (float)INPUT_IMG_MAX_SIZE / (float)im_size_max;
-  }
-
-  if (scale != 1.0) {
-    cv::Mat outputMat;
-    cv::resize(src_img, outputMat, cv::Size(img_width * scale, img_height * scale));
-    src_img = outputMat;
-  }
-
-  // cv::resize(src_img, src_img, cv::Size(320, 240));
-  dlib::cv_image<dlib::bgr_pixel> cimg(src_img);
-
-  double thresh = 0.5;
-  std::vector<dlib::rectangle> dets = detector(cimg, thresh);
-  std::cout << "size: " << dets.size() << std::endl;
-
-  int i = 0;
-  for (i = 0; i < dets.size(); i++) {
-    dlib::rectangle dlibrect = dets[i];
-    cv::Rect r(dlibrect.left(), dlibrect.top(), dlibrect.width(), dlibrect.height());
-    r.x += cvRound(r.width * 0.1);
-    r.width = cvRound(r.width * 0.8);
-    r.y += cvRound(r.height * 0.06);
-    r.height = cvRound(r.height * 0.9);
-    cv::rectangle(src_img, r.tl(), r.br(), cv::Scalar(0, 255, 0), 2);
-  }
-  path = "/sdcard/ret.jpg";
-  cv::imwrite(path, src_img);
-  return 0;
-}
