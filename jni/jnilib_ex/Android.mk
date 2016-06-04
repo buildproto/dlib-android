@@ -33,6 +33,7 @@ LOCAL_SRC_FILES := \
 LOCAL_SRC_FILES += \
 	       jni_hogdetector.cpp \
            jni_imageutils.cpp \
+           jni_surf.cpp \
            common/rgb2yuv.cpp \
            common/yuv2rgb.cpp
 
