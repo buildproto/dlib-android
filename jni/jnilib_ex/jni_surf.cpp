@@ -38,9 +38,7 @@ extern "C" {
 void JNIEXPORT DLIB_JNI_METHOD(jniNativeClassInit)(JNIEnv* _env, jclass _this) {
 }
 
-jint JNIEXPORTJNICALL
-DLIB_JNI_METHOD(jniSurf)(JNIEnv* env, jobject thiz,
-    jstring imgPath) {
+JNIEXPORT jint JNICALL DLIB_JNI_METHOD(jniSurf)(JNIEnv* env, jobject thiz, jstring imgPath) {
   LOG(INFO) << "com_tzutalin_dlib_Surf jniSurf";
   const char* img_path = env->GetStringUTFChars(imgPath, 0);
 
@@ -53,11 +51,12 @@ DLIB_JNI_METHOD(jniSurf)(JNIEnv* env, jobject thiz,
   return sp.size();
 }
 
-jint JNIEXPORTJNICALL DLIB_JNI_METHOD(jniInit)(JNIEnv* env, jobject thiz) {
+JNIEXPORT jint JNICALL DLIB_JNI_METHOD(jniInit)(JNIEnv* env, jobject thiz) {
+  LOG(INFO) << "jniInit";
   return JNI_OK;
 }
 
-jint JNIEXPORTJNICALL DLIB_JNI_METHOD(jniDeInit)(JNIEnv* env, jobject thiz) {
+JNIEXPORT jint JNICALL DLIB_JNI_METHOD(jniDeInit)(JNIEnv* env, jobject thiz) {
   LOG(INFO) << "jniDeInit";
   return JNI_OK;
 }
