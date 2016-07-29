@@ -13,7 +13,13 @@ LOCAL_SRC_FILES += \
                 ../$(LOCAL_PATH)/dlib/dlib/threads/threads_kernel_1.cpp \
                 ../$(LOCAL_PATH)/dlib/dlib/threads/threads_kernel_2.cpp
 
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
+#				../$(LOCAL_PATH)/dlib/dlib/logger/logger_kernel_1.cpp \
+#				../$(LOCAL_PATH)/dlib/dlib/logger/logger_config_file.cpp \
+#				../$(LOCAL_PATH)/dlib/dlib/logger/extra_logger_headers.cpp \
+#				../$(LOCAL_PATH)/dlib/dlib/misc_api/misc_api_kernel_1.cpp \
+#				../$(LOCAL_PATH)/dlib/dlib/misc_api/misc_api_kernel_2.cpp
+
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDE)
 include $(BUILD_STATIC_LIBRARY)
 
 TOP_LEVEL_PATH := $(abspath $(LOCAL_PATH)/..)
