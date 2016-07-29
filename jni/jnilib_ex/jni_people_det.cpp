@@ -1,10 +1,10 @@
 /*
  * jni_people_det.cpp using google-style
  *
- *  Created on: Oct 20, 2015
- *      Author: Tzutalin
+ *	Created on: Oct 20, 2015
+ *	    Author: Tzutalin
  *
- *  Copyright (c) 2015 Tzutalin. All rights reserved.
+ *	Copyright (c) 2015 Tzutalin. All rights reserved.
  */
 #include <android/bitmap.h>
 #include <common/bitmap2mat.h>
@@ -14,6 +14,52 @@
 using namespace cv;
 
 namespace {
+	/*
+=======
+static void convertBitmapToRgbaMat(JNIEnv * env, jobject& bitmap, Mat& dst, bool needUnPremultiplyAlpha) {
+	AndroidBitmapInfo info;
+	void* pixels = 0;
+
+	try {
+		CV_Assert(AndroidBitmap_getInfo(env, bitmap, &info) >= 0);
+		CV_Assert(info.format == ANDROID_BITMAP_FORMAT_RGBA_8888 ||
+							info.format == ANDROID_BITMAP_FORMAT_RGB_565);
+		CV_Assert(AndroidBitmap_lockPixels(env, bitmap, &pixels) >= 0);
+		CV_Assert(pixels);
+		dst.create(info.height, info.width, CV_8UC4);
+		if (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888) {
+			LOG(INFO) << "nBitmapToMat: RGBA_8888 -> CV_8UC4";
+			Mat tmp(info.height, info.width, CV_8UC4, pixels);
+			if (needUnPremultiplyAlpha)
+				cvtColor(tmp, dst, COLOR_mRGBA2RGBA);
+			else
+				tmp.copyTo(dst);
+		} else {
+			// info.format == ANDROID_BITMAP_FORMAT_RGB_565
+			LOG(INFO) << "nBitmapToMat: RGB_565 -> CV_8UC4";
+			Mat tmp(info.height, info.width, CV_8UC2, pixels);
+			cvtColor(tmp, dst, COLOR_BGR5652RGBA);
+		}
+		AndroidBitmap_unlockPixels(env, bitmap);
+		return;
+	} catch (const cv::Exception& e) {
+		AndroidBitmap_unlockPixels(env, bitmap);
+		LOG(FATAL) << "nBitmapToMat catched cv::Exception:" << e.what();
+		jclass je = env->FindClass("org/opencv/core/CvException");
+		if (!je) je = env->FindClass("java/lang/Exception");
+		env->ThrowNew(je, e.what());
+		return;
+	} catch (...) {
+		AndroidBitmap_unlockPixels(env, bitmap);
+		LOG(FATAL) << "nBitmapToMat catched unknown exception (...)";
+		jclass je = env->FindClass("java/lang/Exception");
+		env->ThrowNew(je, "Unknown exception in JNI code {nBitmapToMat}");
+		return;
+	}
+}
+
+>>>>>>> [WIP] changing native code around to support input image normalization when locating facial features
+*/
 std::shared_ptr<OpencvHOGDetctor> gOpencvHOGDetectorPtr;
 std::shared_ptr<DLibHOGDetector> gDLibHOGDetectorPtr;
 std::shared_ptr<DLibHOGFaceDetector> gDLibHOGFaceDetectorPtr;
@@ -37,20 +83,20 @@ struct VisionDetRetOffsets {
 // JNI Mapping Methods
 // ========================================================
 jint JNIEXPORT JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
-  LOG(INFO) << "JNI On Load";
-  JNIEnv* env = NULL;
-  jint result = JNI_ERR;
+	LOG(INFO) << "JNI On Load";
+	JNIEnv* env = NULL;
+	jint result = JNI_ERR;
 
-  if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
-    LOG(FATAL) << "GetEnv failed!";
-    return result;
-  }
+	if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+		LOG(FATAL) << "GetEnv failed!";
+		return result;
+	}
 
-  return JNI_VERSION_1_6;
+	return JNI_VERSION_1_6;
 }
 
 #define DLIB_JNI_METHOD(METHOD_NAME) \
-  Java_com_tzutalin_dlib_PeopleDet_##METHOD_NAME
+	Java_com_tzutalin_dlib_PeopleDet_##METHOD_NAME
 
 void JNIEXPORT DLIB_JNI_METHOD(jniNativeClassInit)(JNIEnv* env, jclass _this) {
   jclass detRetClass = env->FindClass("com/tzutalin/dlib/VisionDetRet");
@@ -206,19 +252,19 @@ jint JNIEXPORT JNICALL
     return JNI_OK;
   }
 
-  return JNI_ERR;
+	return JNI_ERR;
 }
 
 jint JNIEXPORT JNICALL DLIB_JNI_METHOD(jniInit)(JNIEnv* env, jobject thiz) {
-  return JNI_OK;
+	return JNI_OK;
 }
 
 jint JNIEXPORT JNICALL DLIB_JNI_METHOD(jniDeInit)(JNIEnv* env, jobject thiz) {
-  LOG(INFO) << "jniDeInit";
-  gDLibHOGDetectorPtr.reset();
-  gOpencvHOGDetectorPtr.reset();
-  gDLibHOGFaceDetectorPtr.reset();
-  return JNI_OK;
+	LOG(INFO) << "jniDeInit";
+	gDLibHOGDetectorPtr.reset();
+	gOpencvHOGDetectorPtr.reset();
+	gDLibHOGFaceDetectorPtr.reset();
+	return JNI_OK;
 }
 
 #ifdef __cplusplus
