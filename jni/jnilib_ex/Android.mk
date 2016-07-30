@@ -9,7 +9,8 @@ include $(OPENCV_PATH)/OpenCV.mk
 
 LOCAL_MODULE := people_det
 
-LOCAL_C_INCLUDES +=  \
+LOCAL_C_INCLUDES := \
+           $(LOCAL_PATH)/../dlib \
            $(OPENCV_INCLUDE_DIR)
 
 LOCAL_SRC_FILES += \
