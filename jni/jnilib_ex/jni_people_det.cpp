@@ -71,6 +71,17 @@ void JNIEXPORT DLIB_JNI_METHOD(jniNativeClassInit)(JNIEnv* env, jclass _this) {
   LOG(INFO) << "JniNativeClassIni Success";
 }
 
+void JNIEXPORT DLIB_JNI_METHOD(jniNativeClassInitWithModel)(JNIEnv* env, jclass _this, jstring landmarkPath) {
+  DLIB_JNI_METHOD(jniNativeClassInit)(env, _this);
+  const char* landmarkmodel_path = env->GetStringUTFChars(landmarkPath, 0);
+  if (!gDLibHOGFaceDetectorPtr) {
+    LOG(INFO) << "new DLibHOGFaceDetector, landmarkPath" << landmarkmodel_path;
+    gDLibHOGFaceDetectorPtr =
+        std::make_shared<DLibHOGFaceDetector>(landmarkmodel_path);
+  }
+  LOG(INFO) << "JniNativeClassInitWithModel Success";
+}
+
 jint JNIEXPORT JNICALL DLIB_JNI_METHOD(jniOpencvHOGDetect)(JNIEnv* env,
                                                            jobject thiz,
                                                            jstring imgPath) {
