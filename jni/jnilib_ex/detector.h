@@ -141,7 +141,7 @@ class DLibHOGDetector {
  * DLib face detect and face feature extractor
  */
 class DLibHOGFaceDetector : public DLibHOGDetector {
- private:
+ protected:
   std::string mLandMarkModel;
   dlib::shape_predictor msp;
   std::unordered_map<int, dlib::full_object_detection> mFaceShapeMap;
